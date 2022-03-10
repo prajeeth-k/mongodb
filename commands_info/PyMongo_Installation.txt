@@ -1,0 +1,107 @@
+C:\Program Files (x86)\Python\Python38>python -m easy_install pymongo
+Searching for pymongo
+Reading https://pypi.org/simple/pymongo/
+Downloading https://files.pythonhosted.org/packages/3f/ff/7ec17064d403799d644f7db9c2e99202441849aebe771efe3199f3dd9076/pymongo-4.0.1.tar.gz#sha256=13d0624c13a91da71fa0d960205d93b3d98344481be865ee7cc238c972d41d73
+Best match: pymongo 4.0.1
+Processing pymongo-4.0.1.tar.gz
+Writing C:\Users\Preeth\AppData\Local\Temp\easy_install-3irqzioa\pymongo-4.0.1\setup.cfg
+Running pymongo-4.0.1\setup.py -q bdist_egg --dist-dir C:\Users\Preeth\AppData\Local\Temp\easy_install-3irqzioa\pymongo-4.0.1\egg-dist-tmp-dxya6wb8
+Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools": https://visualstudio.microsoft.com/downloads/
+C:\Users\Preeth\AppData\Local\Temp\easy_install-3irqzioa\pymongo-4.0.1\setup.py:250: UserWarning:
+********************************************************************
+WARNING: The bson._cbson extension module could not
+be compiled. No C extensions are essential for PyMongo to run,
+although they do result in significant speed improvements.
+The output above this warning shows how the compilation failed.
+
+Please see the installation docs for solutions to build issues:
+
+https://pymongo.readthedocs.io/en/stable/installation.html
+
+Here are some hints for popular operating systems:
+
+If you are seeing this message on Linux you probably need to
+install GCC and/or the Python development package for your
+version of Python.
+
+Debian and Ubuntu users should issue the following command:
+
+    $ sudo apt-get install build-essential python-dev
+
+Users of Red Hat based distributions (RHEL, CentOS, Amazon Linux,
+Oracle Linux, Fedora, etc.) should issue the following command:
+
+    $ sudo yum install gcc python-devel
+
+If you are seeing this message on Microsoft Windows please install
+PyMongo using pip. Modern versions of pip will install PyMongo
+from binary wheels available on pypi. If you must install from
+source read the documentation here:
+
+https://pymongo.readthedocs.io/en/stable/installation.html#installing-from-source-on-windows
+
+If you are seeing this message on macOS / OSX please install PyMongo
+using pip. Modern versions of pip will install PyMongo from binary
+wheels available on pypi. If wheels are not available for your version
+of macOS / OSX, or you must install from source read the documentation
+here:
+
+https://pymongo.readthedocs.io/en/stable/installation.html#osx
+********************************************************************
+
+  warnings.warn(self.warning_message % ("The %s extension "
+Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools": https://visualstudio.microsoft.com/downloads/
+C:\Users\Preeth\AppData\Local\Temp\easy_install-3irqzioa\pymongo-4.0.1\setup.py:250: UserWarning:
+********************************************************************
+WARNING: The pymongo._cmessage extension module could not
+be compiled. No C extensions are essential for PyMongo to run,
+although they do result in significant speed improvements.
+The output above this warning shows how the compilation failed.
+
+Please see the installation docs for solutions to build issues:
+
+https://pymongo.readthedocs.io/en/stable/installation.html
+
+Here are some hints for popular operating systems:
+
+If you are seeing this message on Linux you probably need to
+install GCC and/or the Python development package for your
+version of Python.
+
+Debian and Ubuntu users should issue the following command:
+
+    $ sudo apt-get install build-essential python-dev
+
+Users of Red Hat based distributions (RHEL, CentOS, Amazon Linux,
+Oracle Linux, Fedora, etc.) should issue the following command:
+
+    $ sudo yum install gcc python-devel
+
+If you are seeing this message on Microsoft Windows please install
+PyMongo using pip. Modern versions of pip will install PyMongo
+from binary wheels available on pypi. If you must install from
+source read the documentation here:
+
+https://pymongo.readthedocs.io/en/stable/installation.html#installing-from-source-on-windows
+
+If you are seeing this message on macOS / OSX please install PyMongo
+using pip. Modern versions of pip will install PyMongo from binary
+wheels available on pypi. If wheels are not available for your version
+of macOS / OSX, or you must install from source read the documentation
+here:
+
+https://pymongo.readthedocs.io/en/stable/installation.html#osx
+********************************************************************
+
+  warnings.warn(self.warning_message % ("The %s extension "
+zip_safe flag not set; analyzing archive contents...
+pymongo.__pycache__.daemon.cpython-38: module references __file__
+creating c:\program files (x86)\python\python38\lib\site-packages\pymongo-4.0.1-py3.8-win-amd64.egg
+Extracting pymongo-4.0.1-py3.8-win-amd64.egg to c:\program files (x86)\python\python38\lib\site-packages
+Adding pymongo 4.0.1 to easy-install.pth file
+
+Installed c:\program files (x86)\python\python38\lib\site-packages\pymongo-4.0.1-py3.8-win-amd64.egg
+Processing dependencies for pymongo
+Finished processing dependencies for pymongo
+
+C:\Program Files (x86)\Python\Python38>

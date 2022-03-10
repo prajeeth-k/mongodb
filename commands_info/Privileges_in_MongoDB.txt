@@ -1,0 +1,134 @@
+Privilege Actions
+https://docs.mongodb.com/manual/reference/privilege-actions/
+
+
+Query and Write Actions
+1. find
+2. insert
+3. remove
+4. udpate
+5. bypassDocumentValidation
+6. useUUID
+
+
+Database Management Actions
+1. changeCustomData
+2. changeOwnCustomData
+3. changeOwnPassword
+4. changePassword
+5. createCollection
+6. createIndex
+7. createRole
+8. createUser
+9. dropCollection
+10. dropRole
+11. dropUser
+12. enableProfiler
+13. grantRole
+14. killCursors
+15. killAnyCursor
+16. planCacheIndexFilter
+17. revokeRole
+18. setAuthenticationRestriction
+19. setFeatureCompatibilityVersion
+20. unlock
+21. viewRole
+22. viewUser
+
+Deployment Management Actions
+1. authSchemaUpgrade
+2. cleanupOrphaned
+3. cpuProfiler
+4. inprog
+5. invalidateUserCache
+6. killop
+7. planCacheRead
+8. planCacheWrite
+9. storageDetails
+
+Change Stream Actions
+1. changeStream
+2. appendOplogNote
+3. replSetConfigure
+4. replSetGetConfig
+5. replSetGetStatus
+6. replSetHeartbeat
+7. replSetStateChange
+8. resync
+
+Sharding Actions
+1. addShard
+2. clearJumboFlag
+3. enableSharding
+4. refineCollectionShardKey
+5. flushRouterConfig
+6. getShardMap
+7. getShardVersion
+8. listShards
+9. moveChunk
+10. removeShard
+11. shardingState
+12. splitChunk
+13. splitVector
+
+Server Administration Actions
+1. applicationMessage
+2. closeAllDatabases
+3. collMod
+4. compact
+5. connPoolSync
+6. convertToCapped
+7. dropConnections
+8. dropDatabase
+9. dropIndex
+10. forceUUID
+11. fsync
+12. getDefaultRWConcern
+13. getParameter
+14. hostInfo
+15. logRotate
+16. reIndex
+17. renameCollectionSameDB
+18. rotateCertificates
+19. setDefaultRWConcern
+20. setParameter
+21. shutdown
+22. touch
+
+Session Actions
+1. impersonate
+2. listSessions
+3. killAnySession
+
+Free Monitoring Actions
+1. checkFreeMonitoringStatus
+2. setFreeMonitoring
+
+Diagnostic Actions
+1. collStats
+2. connPoolStats
+3. cursorInfo
+4. dbHash
+5. dbStats
+6. getCmdLineOpts
+7. getLog
+8. indexStats
+9. listDatabases
+10. listCollections
+11. listIndexes
+12. netstat
+13. serverStatus
+14. validate
+15. top
+
+
+Internal Actions
+1. anyAction
+2. internal
+3. applyOps
+
+
+
+
+
+

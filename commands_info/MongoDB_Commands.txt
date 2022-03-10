@@ -1,0 +1,1521 @@
+192.168.1.75
+username : oracle
+password : redhat
+Port 22
+
+START MONGODB instance
+mongod --dbpath /u2/mongodb_data/inst1 --port 32000 --logpath /u2/mongodb_data/inst1/log/mongod.log
+
+mongo --host 192.168.1.75 --port 32000 (if this is not working, replace 192.168.1.75 with "localhost" : mongo --host localhost --port 32000)
+
+OR
+
+mongo localhost:32000/learning
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+[oracle@orcl ~]$ cat  /etc/mongod.conf
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# where to write logging data.
+systemLog:
+  #logRotate : rename | reopen
+  destination: file | syslog
+  logAppend: true
+  path: /u2/mongodb_data/inst1/log/mongod.log
+
+# Where and how to store data.
+storage:
+  dbPath: /u2/mongodb_data/inst1/data
+  journal:
+    enabled: true
+#  engine:
+#  wiredTiger:
+#  mmapv1:
+      journal:
+            commitIntervalMs: 144
+
+# how the process runs
+processManagement:
+  fork: true  # fork and run in background
+  pidFilePath: /u2/mongodb_data/inst1/mongod.pid  # location of pidfile
+  timeZoneInfo: /usr/share/zoneinfo
+
+# network interfaces
+net:
+  port: 32000
+  bindIp: 192.168.1.75  # Enter 0.0.0.0,:: to bind to all IPv4 and IPv6 addresses or, alternatively, use the net.bindIpAll setting.
+
+
+security:
+   authorization : enabled
+
+#operationProfiling:
+
+#replication:
+
+#sharding:
+
+## Enterprise-Only Options
+
+#auditLog:
+
+#snmp:
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+START MONGODB SERVER
+
+[oracle@orcl log]$ mongod --config /etc/mongod.conf (or mongod -f /etc/mongod.conf)
+about to fork child process, waiting until server is ready for connections.
+forked process: 25623
+child process started successfully, parent exiting
+
+[oracle@orcl log]$ mongo --host 192.168.1.75 --port 32000
+mongo --host 192.168.1.75 --port 32000 learning
+mongo 192.168.1.75:32000/learning
+
+MongoDB Enterprise > show databases (or show dbs)
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+
+MongoDB Enterprise > db.getMongo()
+connection to 192.168.1.75:32000
+
+---------------------------------------------------------------------------------------------------------------------------------
+commands
+8:22 PM 12/2/2021
+use learning : to switch to "learning" database. Will create new if it doesnt exist
+
+db : to see current database
+
+MongoDB Enterprise > db.movies.insert ({"name" : "Marakar"})
+WriteResult({ "nInserted" : 1 })
+
+MongoDB Enterprise > show databases
+admin     0.000GB <= containts things like user account, permissions
+config    0.000GB
+learning  0.000GB
+local     0.000GB <= housekeeping database that tracks host specific info
+
+Create Collection
+db.createCollection (name, options)
+name = name of collection
+option : 
+	capped	: true | false
+	autoIndexId	: true | false (creates index on _id field, default false)
+	max	: max is the maximum number of documents in capped collection
+	size 	: maximum size of capped collection
+
+db.createCollection ("collection1")
+
+MongoDB Enterprise > db.collection1.drop ()
+true
+
+How to generate ObjectId for _id field : 
+MongoDB Enterprise > x = ObjectId ()
+ObjectId("61a8e2f07c026fef9305c8aa")
+
+MongoDB Enterprise > db.movies.insert ({_id : ObjectId("61a8e2f07c026fef9305c8aa"), "name" : "Marakkar", "director" : "Priyadarshan", "budget" : 100})
+WriteResult({ "nInserted" : 1 })
+
+db.movies.save() will replace document with same "_id"
+
+db.movies.insertOne() 
+
+MongoDB Enterprise > db.serverStatus ()
+
+MongoDB Enterprise > db.serverStatus ().security
+---------------------------------------------------------------------------------------------------------------------------------
+OS SETTING
+transparent_hugepage should be set to NEVER
+/sys/kernel/mm/transparent_hugepage/defrag is 'always'. We suggest setting it to 'never'
+
+Soft rlimits too low
+        currentValue: 4096
+        recommendedMinimum: 64000
+
+---------------------------------------------------------------------------------------------------------------------------------
+control L = to clear screen
+show collections
+db.movies.find () or db.chunks.find ().pretty ()
+db.movies.save () to update the existing record
+db.movies.save ({_id : ObjectId("61a8e2f07c026fef9305c8aa"), "name" : "Marakkar", "director" : "Priyadarshan", "actor" : "Mohanlal", "budgetCr" : 100})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+db.movies.find ({_id : ObjectId("61a8e2f07c026fef9305c8aa")})
+db.movies.find ({"budget" : {$gt : 50, $lt : 150}})
+db.movies.find ({actor : "Mohanlal"})
+db.movies.find ({"actor": {$eq : "Mohanlal"}}).forEach(printjson)
+db.movies.find ({"actor": {$eq : "Mohanlal"}})
+db.movies.find ({$and: [ {Released: {$gt: 1980}}, {Released: {$lt: 1990}}]})
+db.movies.find ({$or: [ {Released: {$gt: 1980}}, {actor: {$eq: "Mohanlal"}}]})
+db.movies.find({actor: {$regex: /lal$/}}) <== LIKE
+db.movies.find({actor: {$regex: /LAL$/i}}) <= Case insensitive search
+
+TO DISPLAY ONLY SELECTED FIELDS FROM ALL DOCUMENTS
+db.movies.find ({}, {director : 1}) <==== "director" is a field in collectin "movies"
+
+db.learning.insert ({"_id": 10}, {writeConcern : {w:1}})
+
+db.movies.update ({_id : ObjectId("61a8e2f07c026fef9305c8aa")}, {$set : {"budget" : "100cr"}})
+db.movies.update ({_id : ObjectId("61a8e2f07c026fef9305c8aa")}, {$inc : {"budgetCr" : 1}})
+db.movies.update ({_id : ObjectId("61a8e2f07c026fef9305c8aa")}, {$inc : {"budgetCr" : 1}})
+
+To get stats :
+use <db name>
+db.movies.stats ()
+db.movies.stats ().count to know the # of collections
+ db.movies.stats ().ns
+db.movies.stats ().sharded
+db.movies.stats ().capped
+db.movies.stats ().ns <==== namespace
+db.movies.stats ().count
+db.movies.stats ().size
+db.movies.stats ().storageSize
+db.movies.stats ().totalIndexSize
+db.movies.stats ().totalSize
+db.movies.stats ().indexSizes
+db.movies.stats ().avgObjSize
+db.movies.stats ().maxSize
+db.movies.stats ().nindexes
+db.movies.stats ().nchunks
+db.movies.stats ().shards
+db.movies.remove ({"_id" : ObjectId("61a8e1337c026fef9305c8a7")})
+
+db.movies.drop ()
+
+db.dropDatabse()
+
+"born" : ISODate("1994-04-01")
+MongoDB Enterprise > foo = new Date("2012-07-14T01:00:00+01:00")
+ISODate("2012-07-14T00:00:00Z")
+MongoDB Enterprise > foo.toTimeString()
+05:30:00 GMT+0530 (IST)
+
+MongoDB Enterprise > foo.getHours()
+5
+MongoDB Enterprise > foo.getMinutes()
+30
+ISODate("2012-07-14T01:00:00+01:00").toLocaleTimeString()
+
+ISODate("2012-07-14T01:00:00+01:00").getHours()
+
+ISODate("2012-07-14T01:00:00+01:00").getMinutes()
+
+ObjectId("61a8e2f07c026fef9305c8aa").getTimestamp ()
+ISODate("2021-12-02T15:14:56Z")
+
+
+var p = {"name" : "Manichitrathazhu", "director" : "Fazil", "actor" : "Mohanlal", "Written " : "Madhu Muttam", "Released" : ISODate("1993-12-25")}
+db.movies.save (p)
+
+ObjectId("61a8e2f07c026fef9305c8aa").str
+61a8e2f07c026fef9305c8aa
+
+db.movies.save ({_id : ObjectId("61a8e2f07c026fef9305c8aa"), "name" : "Marakkar", "director" : "Priyadarshan", "actor" : "Mohanlal", "budgetCr" : 100, "Released" : ISODate("2021-12-02")})
+db.movies.find().sort({"Released":1})
+db.movies.find().sort({"Released" : -1})
+db.movies.find().sort({"Released" : -1, "budgetCr" :1})
+db.movies.find().sort({"Released" : -1, "budgetCr" :1}).limit (1)
+
+CURSOR
+
+var cursor1 = db.movies.find ()
+cursor1.next ()
+
+MONGODUMP
+
+mongodump --ssl --host=localhost --port=33444 -u="User" -p="Password" --sslPEMKeyFile=/etc/ssl/mongodb/client/client.pem 
+          --sslCAFile=/etc/ssl/mongodb/server/server.pem --sslPEMKeyPassword=password 
+          --db=mydb --archive=./backups/backup_time.gz --gzip --out /home/oracle/MONGODB/backup/
+
+mongodump --host=192.168.1.75 --port=32000 --db=learning --out /home/oracle/MONGODB/backup/
+
+"admin" will only be backed up all dbs are backed
+
+
+What is an Oplog? The oplog (operations log) is a special capped collection that keeps a rolling record of all operations that modify the data stored in your databases.
+
+mongodump --host=192.168.1.75 --port=32000 --db=learning --out /home/oracle/MONGODB/backup/ --collection movies
+
+MONGORESTORE
+--dryRun
+mongorestore --host 192.168.1.75 --port 32000 /home/oracle/MONGODB/backup
+mongorestore --host 192.168.1.75:32000 --db learning --collection movies /home/oracle/MONGODB/backup/learning/movies.bson <= do not replacing existing collection
+mongorestore --host 192.168.1.75:32000 --drop --db learning --collection movies  /home/oracle/MONGODB/backup/learning/movies.bson <= to replace existing db
+
+MONGOIMPORT / MONGOEXPORT
+
+mongoimport --type {json | csv | tsv}
+
+mongoimport --host 192.168.1.75 --port 32000 --db learning --collection movies --type csv --headerline --file=/tmp/mov.csv
+cat /tmp/mov.csv
+name,director,actor,Written,Released
+Oothikachiya Ponnu,P. K. Joseph,Mohanlal,V. K. Pavithran,1981-12-11
+Thenum Vayambum,Ashok Kumar,Mohanlal,John Paul,1981-11-17
+Ahimsa, I. V. Sasi,Mohanlal,T. Damodaran,1981-12-24
+Madrasile Mon,J. Sasikumar,Mohanlal,P. M. Nair,1982-08-20
+
+mongoimport --host 192.168.1.75 --port 32000 --db learning --collection movies --type csv --fields "name,director,actor,Written,Released" --file=/tmp/mov.csv
+mongoimport --host 192.168.1.75 --port 32000 --db learning --collection movies --type csv --headerline --upsert --file=/tmp/mov.csv <= UPSERT
+mongoimport --host 192.168.1.75 --port 32000 --db learning --collection movies --type json --drop --file=/tmp/abc.json
+
+mongoexport --host 192.168.1.75 --port 32000 --db learning --collection movies --type=json|csv|tsv --out=/tmp/abc.json <= must include fields if using CSV
+
+mongoexport --host 192.168.1.75 --port 32000 --db learning --collection movies --type=json --out=/tmp/abc.json
+mongoexport --host 192.168.1.75 --port 32000 --db learning --collection movies --type=csv --fields name --out=/tmp/abc.json <= json imports _id, CSV will not 
+mongoexport --host 192.168.1.75 --port 32000 --db learning --collection movies --type=csv --fields name.first,name.last --out=/tmp/abc.json <= first and last name
+mongoexport --host 192.168.1.75 --port 32000 --db learning --collection movies --skip 0 --limit 2 --sort "{name:1}" <= to display the results pageswise
+
+SELECT EXPORT
+mongoexport --db movies --collection movies --query "{""actor"":""Mohanlal""}"
+mongoexport -d=test -c=records -q='{ "a": { "$gte": 3 }, "date": { "$lt": { "$date": "2016-01-01T00:00:00.000Z" } } }' --sort=<JSON> --out=exportdir/myRecords.json
+--fields option (Export to CSV format)
+
+
+
+INDEX
+
+ db.movies.getIndexes ()
+CREATE AN INDEX
+
+db.<collection>.ensureIndex({field:direction})
+
+db.movies.ensureIndex({"name":1})
+
+db.movies.getIndexes ()
+
+db.movies.dropIndex("name_1")
+
+
+db.messages.save ({id : ObjectId("61ae57cfb4876a6db58e7a57"), "from" : {"country" : "62", "number" : "124123412"}, "to": {"country" : "38", "number" : "251212"}, "text" : "asdlasldqwoe aslda", "rates" : ["lo","12","ladi"], "time" : ISODate("2015-03-28T05:51:02.2343"), "promo":"promo-4"})
+
+db.messages.ensureIndex({"from.country" : 1})
+
+TO GET COLLECTION INFORMATION IN A DB
+db.getCollectionInfos()
+db.getCollectionInfos( { name: "movies" } ) <= index info for particular collection. "name" is the collection
+
+
+db.movies.count()
+db.movies.isCapped()
+db.movies.remove(<query>, <JustOne boolean>)
+db.movies.remove ({}, false)
+
+db.movies.reIndex()
+db.movies.latencyStats()
+db.movies.renameCollection()
+db.movies.replaceOne()
+db.movies.stats()
+db.movies.validate()
+
+https://docs.mongodb.com/manual/reference/method/js-collection/
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+REPLICA SET
+
+mongod --dbpath /home/oracle/MONGODB/replica_set/rs1 --replSet r1 --oplogSize 1 <= megasize
+
+rs.initiate() <= to initialization replica set
+rs.config() <= get the configuration of replica set
+{
+        "_id" : "r1", <= name of rs
+        "version" : 1, <= whether the conf doc is later than the other. 2 members can know which is the lastes
+        "term" : 1,
+        "protocolVersion" : NumberLong(1),
+        "writeConcernMajorityJournalDefault" : true,
+        "members" : [
+                {
+                        "_id" : 0,
+                        "host" : "localhost:27017",
+                        "arbiterOnly" : false,
+                        "buildIndexes" : true,
+                        "hidden" : false,
+                        "priority" : 1,
+                        "tags" : {
+
+                        },
+                        "slaveDelay" : NumberLong(0),
+                        "votes" : 1
+                }
+        ],
+        "settings" : {
+                "chainingAllowed" : true,
+                "heartbeatIntervalMillis" : 2000,
+                "heartbeatTimeoutSecs" : 10,
+                "electionTimeoutMillis" : 10000,
+                "catchUpTimeoutMillis" : -1,
+                "catchUpTakeoverDelayMillis" : 30000,
+                "getLastErrorModes" : {
+
+                },
+                "getLastErrorDefaults" : {
+                        "w" : 1,
+                        "wtimeout" : 0
+                },
+                "replicaSetId" : ObjectId("61af7d0d2c54176674a67ffd")
+        }
+}
+
+var conf = rs.config()
+rs.reconfig (conf)
+rs.status() <= run time stats
+rs.status().members
+
+
+HOW TO CREATE A REPLICA SET OF 3 MEMBERS
+mongod --port 30001 --dbpath /home/oracle/MONGODB/replica_set/rs1 --replSet r1
+mongod --port 30002 --dbpath /home/oracle/MONGODB/replica_set/rs2 --replSet r1
+mongod --port 30003 --dbpath /home/oracle/MONGODB/replica_set/rs3 --replSet r1
+
+mongo --port 30001 --host localhost 
+MongoDB Enterprise > rs.initiate()
+{
+        "info2" : "no configuration specified. Using a default configuration for the set",
+        "me" : "localhost:30001",
+        "ok" : 1,
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1638893899, 2),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        },
+        "operationTime" : Timestamp(1638893899, 1)
+}
+MongoDB Enterprise r1:SECONDARY>
+MongoDB Enterprise r1:PRIMARY> rs.add("localhost:30002")
+{
+        "ok" : 1,
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1638894537, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        },
+        "operationTime" : Timestamp(1638894537, 1)
+}
+MongoDB Enterprise r1:PRIMARY> rs.add("localhost:30003", true)
+{
+        "ok" : 1,
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1638894614, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        },
+        "operationTime" : Timestamp(1638894614, 1)
+}
+
+
+MongoDB Enterprise r1:PRIMARY> rs.config() <========== Config
+{
+        "_id" : "r1",
+        "version" : 3,
+        "term" : 1,
+        "protocolVersion" : NumberLong(1),
+        "writeConcernMajorityJournalDefault" : true,
+        "members" : [
+                {
+                        "_id" : 0,
+                        "host" : "localhost:30001",
+                        "arbiterOnly" : false,
+                        "buildIndexes" : true,
+                        "hidden" : false,
+                        "priority" : 1,
+                        "tags" : {
+
+                        },
+                        "slaveDelay" : NumberLong(0),
+                        "votes" : 1
+                },
+                {
+                        "_id" : 1,
+                        "host" : "localhost:30002",
+                        "arbiterOnly" : false,
+                        "buildIndexes" : true,
+                        "hidden" : false,
+                        "priority" : 1,
+                        "tags" : {
+
+                        },
+                        "slaveDelay" : NumberLong(0),
+                        "votes" : 1
+                },
+                {
+                        "_id" : 2,
+                        "host" : "localhost:30003",
+                        "arbiterOnly" : true,      <<<<<<<< ARBITER 
+                        "buildIndexes" : true,
+                        "hidden" : false,
+                        "priority" : 0,
+                        "tags" : {
+
+                        },
+                        "slaveDelay" : NumberLong(0),
+                        "votes" : 1
+                }
+        ],
+        "settings" : {
+                "chainingAllowed" : true,
+                "heartbeatIntervalMillis" : 2000,
+                "heartbeatTimeoutSecs" : 10,
+                "electionTimeoutMillis" : 10000,
+                "catchUpTimeoutMillis" : -1,
+                "catchUpTakeoverDelayMillis" : 30000,
+                "getLastErrorModes" : {
+
+                },
+                "getLastErrorDefaults" : {
+                        "w" : 1,
+                        "wtimeout" : 0
+                },
+                "replicaSetId" : ObjectId("61af894b222d826149bb9021")
+        }
+}
+
+
+MongoDB Enterprise r1:PRIMARY> rs.status()
+{
+        "set" : "r1",
+        "date" : ISODate("2021-12-07T16:32:25.165Z"),
+        "myState" : 1,
+        "term" : NumberLong(1),
+        "syncSourceHost" : "",
+        "syncSourceId" : -1,
+        "heartbeatIntervalMillis" : NumberLong(2000),
+        "majorityVoteCount" : 2,
+        "writeMajorityCount" : 2,
+        "votingMembersCount" : 3,
+        "writableVotingMembersCount" : 2,
+        "optimes" : {
+                "lastCommittedOpTime" : {
+                        "ts" : Timestamp(1638894739, 1),
+                        "t" : NumberLong(1)
+                },
+                "lastCommittedWallTime" : ISODate("2021-12-07T16:32:19.357Z"),
+                "readConcernMajorityOpTime" : {
+                        "ts" : Timestamp(1638894739, 1),
+                        "t" : NumberLong(1)
+                },
+                "readConcernMajorityWallTime" : ISODate("2021-12-07T16:32:19.357Z"),
+                "appliedOpTime" : {
+                        "ts" : Timestamp(1638894739, 1),
+                        "t" : NumberLong(1)
+                },
+                "durableOpTime" : {
+                        "ts" : Timestamp(1638894739, 1),
+                        "t" : NumberLong(1)
+                },
+                "lastAppliedWallTime" : ISODate("2021-12-07T16:32:19.357Z"),
+                "lastDurableWallTime" : ISODate("2021-12-07T16:32:19.357Z")
+        },
+        "lastStableRecoveryTimestamp" : Timestamp(1638894739, 1),
+        "electionCandidateMetrics" : {
+                "lastElectionReason" : "electionTimeout",
+                "lastElectionDate" : ISODate("2021-12-07T16:18:19.176Z"),
+                "electionTerm" : NumberLong(1),
+                "lastCommittedOpTimeAtElection" : {
+                        "ts" : Timestamp(0, 0),
+                        "t" : NumberLong(-1)
+                },
+                "lastSeenOpTimeAtElection" : {
+                        "ts" : Timestamp(1638893899, 1),
+                        "t" : NumberLong(-1)
+                },
+                "numVotesNeeded" : 1,
+                "priorityAtElection" : 1,
+                "electionTimeoutMillis" : NumberLong(10000),
+                "newTermStartDate" : ISODate("2021-12-07T16:18:19.218Z"),
+                "wMajorityWriteAvailabilityDate" : ISODate("2021-12-07T16:18:19.261Z")
+        },
+        "members" : [
+                {
+                        "_id" : 0,
+                        "name" : "localhost:30001",
+                        "health" : 1,
+                        "state" : 1,
+                        "stateStr" : "PRIMARY",
+                        "uptime" : 1092,
+                        "optime" : {
+                                "ts" : Timestamp(1638894739, 1),
+                                "t" : NumberLong(1)
+                        },
+                        "optimeDate" : ISODate("2021-12-07T16:32:19Z"),
+                        "syncSourceHost" : "",
+                        "syncSourceId" : -1,
+                        "infoMessage" : "",
+                        "electionTime" : Timestamp(1638893899, 2),
+                        "electionDate" : ISODate("2021-12-07T16:18:19Z"),
+                        "configVersion" : 3,
+                        "configTerm" : 1,
+                        "self" : true,
+                        "lastHeartbeatMessage" : ""
+                },
+                {
+                        "_id" : 1,
+                        "name" : "localhost:30002",
+                        "health" : 1,
+                        "state" : 2,
+                        "stateStr" : "SECONDARY",
+                        "uptime" : 207,
+                        "optime" : {
+                                "ts" : Timestamp(1638894739, 1),
+                                "t" : NumberLong(1)
+                        },
+                        "optimeDurable" : {
+                                "ts" : Timestamp(1638894739, 1),
+                                "t" : NumberLong(1)
+                        },
+                        "optimeDate" : ISODate("2021-12-07T16:32:19Z"),
+                        "optimeDurableDate" : ISODate("2021-12-07T16:32:19Z"),
+                        "lastHeartbeat" : ISODate("2021-12-07T16:32:24.946Z"),
+                        "lastHeartbeatRecv" : ISODate("2021-12-07T16:32:24.947Z"),
+                        "pingMs" : NumberLong(0),
+                        "lastHeartbeatMessage" : "",
+                        "syncSourceHost" : "localhost:30001",
+                        "syncSourceId" : 0,
+                        "infoMessage" : "",
+                        "configVersion" : 3,
+                        "configTerm" : 1
+                },
+                {
+                        "_id" : 2,
+                        "name" : "localhost:30003",
+                        "health" : 1,
+                        "state" : 7,
+                        "stateStr" : "ARBITER",
+                        "uptime" : 130,
+                        "lastHeartbeat" : ISODate("2021-12-07T16:32:24.946Z"),
+                        "lastHeartbeatRecv" : ISODate("2021-12-07T16:32:24.975Z"),
+                        "pingMs" : NumberLong(0),
+                        "lastHeartbeatMessage" : "",
+                        "syncSourceHost" : "",
+                        "syncSourceId" : -1,
+                        "infoMessage" : "",
+                        "configVersion" : 3,
+                        "configTerm" : 1
+                }
+        ],
+        "ok" : 1,
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1638894739, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        },
+        "operationTime" : Timestamp(1638894739, 1)
+}
+
+
+MongoDB Enterprise r1:PRIMARY> for(i=0; i<10;i++){db.learning.save({_id:i});}
+WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 9 })
+
+
+CONNECTING TO SECONDARY DATABASE
+MongoDB Enterprise r1:PRIMARY> db=connect("localhost:30002/learning")
+connecting to: mongodb://localhost:30002/learning
+Implicit session: session { "id" : UUID("483182b6-9223-494f-8477-f73cb70660c8") }
+MongoDB server version: 4.4.8
+learning
+
+
+MongoDB Enterprise r1:SECONDARY> db.learning.find()
+Error: error: {
+        "topologyVersion" : {
+                "processId" : ObjectId("61af885caf6d4dc58ed51885"),
+                "counter" : NumberLong(4)
+        },
+        "operationTime" : Timestamp(1638894989, 1),
+        "ok" : 0,
+        "errmsg" : "not master and slaveOk=false",
+        "code" : 13435,
+        "codeName" : "NotPrimaryNoSecondaryOk",
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1638894989, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        }
+}
+
+db.setSlaveOk()
+WARNING: setSlaveOk() is deprecated and may be removed in the next major release. Please use setSecondaryOk() instead.
+MongoDB Enterprise r1:SECONDARY> db.setSecondaryOk()
+MongoDB Enterprise r1:SECONDARY> db.learning.find()
+{ "_id" : 0 }
+{ "_id" : 1 }
+{ "_id" : 5 }
+{ "_id" : 7 }
+{ "_id" : 8 }
+{ "_id" : 3 }
+{ "_id" : 6 }
+{ "_id" : 2 }
+{ "_id" : 4 }
+{ "_id" : 9 }
+
+kill the PRIMARY, SECONDARY BECOMES PRIMARY
+MongoDB Enterprise r1:SECONDARY>
+MongoDB Enterprise r1:SECONDARY>
+MongoDB Enterprise r1:PRIMARY> rs.status()
+
+
+        "members" : [
+                {
+                        "_id" : 0,
+                        "name" : "localhost:30001",
+                        "health" : 0,
+                        "state" : 8,
+                        "stateStr" : "(not reachable/healthy)", <========== 
+                        "uptime" : 0,
+
+
+
+                        "_id" : 1,
+                        "name" : "localhost:30002",
+                        "health" : 1,
+                        "state" : 1,
+                        "stateStr" : "PRIMARY", <==============
+
+
+SETTING PRIORITY for CLUSTER MEMBER TO MAKE IT PRIMARY
+var cfg = rs.config ()
+cfg.members[0].priority = 10
+rs.reconfig (cfg)
+
+MongoDB Enterprise r1:PRIMARY> cfg
+
+        "members" : [
+                {
+                        "_id" : 0,
+                        "host" : "localhost:30001",
+                        "arbiterOnly" : false,
+                        "buildIndexes" : true,
+                        "hidden" : false,
+                        "priority" : 10,
+                        "tags" : {
+
+
+
+MongoDB Enterprise r1:PRIMARY> rs.config()
+{
+        "_id" : "r1",
+        "version" : 4,  <============ version has been bumped
+        "term" : 5,
+        "protocolVersion" : NumberLong(1),
+        "writeConcernMajorityJournalDefault" : true,
+        "members" : [
+                {
+                        "_id" : 0,
+                        "host" : "localhost:30001",
+                        "arbiterOnly" : false,
+                        "buildIndexes" : true,
+                        "hidden" : false,
+                        "priority" : 10, <=========== priority for member 0
+                        "tags" : {
+
+
+
+
+
+MongoDB Enterprise r1:SECONDARY> db.getMongo()
+connection to localhost:30002
+
+TO STEPDOWN
+
+CONNECT TO PRIMARY
+db = connect ("localhost:30001/db_name")
+rs.stepDown (3*60)
+
+FREEZE
+to tell a secondary not to become primary when the PRIMARY is stepDown ()
+SECONDARY> rs.freeze(minutes) <= minutes is the freeze period
+
+HIDEN
+var cfg = rs.config ()
+cfg.members[2].priority = 0 <= special priority that it cannot become PRIMARY
+cfg.members[2].hidden = true <== tells applications to ignore as list of secondary,  Always prevent applications from seeing
+rs.reconfig (cfg)
+
+CHAINING
+chainingAllowed:true
+
+WRITE CONCERN 
+Write Concern Specification : { w: <value>, j: <boolean>, wtimeout: <number> }
+
+1. ACKNOWLEDGED - w: 1 - NO DURABILITY GUARANTEE, JUST IN-MEMORY WRITE, NOT PERSISTED, ONLY PRIMARY
+2. UNACKNOWLEDGED - w: 0 - FASTEST 
+3. JOURNALED - DOES NOT RETURN OK UNTIL THE WRITE HAS MADE IT TO THE JOURNAL, JOURNAL IS FLUSHED TO DISK OFTEN. DEFAULT
+4. w greater than 1 - CLIENT HAS TO WAIT FOR THAT MANY MEMBERS TO RETURN OK
+5. MAJORITY - MORE THAN 50% WRITE SUCCESS, FROM VERSION 3, MAJORITY OF VOTING MEMBERS (VOTING MEMBERS IS members[n].votes = 1)
+Starting in MongoDB 5.0, the implicit default write concern is w: majority
+TIMEOUT 
+
+Specifically, MongoDB uses the following formula to determine the default write concern:
+
+if [ (#arbiters > 0) AND (#non-arbiters <= majority(#voting-nodes)) ]
+    defaultWriteConcern = { w: 1 }
+else
+    defaultWriteConcern = { w: "majority" }
+
+Majority of Voting Nodes = INTEGER (Voting Nodes) / 2 + 1
+Voting Nodes = sum (NON-ARBITERS WITH members[n].votes = 1 + ARBITERS)
+
+
+MongoDB Enterprise r1:PRIMARY> db.learning.insert ({"_id": 10}, {writeConcern : {w:1}})
+WriteResult({ "nInserted" : 1 })
+
+MongoDB Enterprise r1:PRIMARY> db.learning.insert ({"_id": 11}, {writeConcern : {j:true}})
+WriteResult({ "nInserted" : 1 })
+
+MongoDB Enterprise r1:PRIMARY> db.learning.insert ({"_id": 11}, {writeConcern : {w:0}})
+WriteResult({ })
+
+MongoDB Enterprise r1:PRIMARY> db.learning.insert ({"_id": 12}, {writeConcern : {w:2}})
+WriteResult({ "nInserted" : 1 })
+
+MongoDB Enterprise r1:PRIMARY> db.learning.insert ({"_id": 13}, {writeConcern : {w:2, j : true}})
+WriteResult({ "nInserted" : 1 })
+
+MongoDB Enterprise r1:PRIMARY>  db.learning.insert ({"_id": 14}, {writeConcern : {w:'majority'}})
+WriteResult({ "nInserted" : 1 })
+
+MongoDB Enterprise r1:PRIMARY> db.learning.insert ({"_id": 15}, {writeConcern : {w:2, wtimeout : 2000}})
+WriteResult({ "nInserted" : 1 })
+
+
+https://docs.mongodb.com/manual/reference/replica-configuration/#mongodb-rsconf-rsconf.members-n-.votes
+members[n].votes : 
+   either 1 or 0, and arbiters always have exactly 1 vote, 
+   Members with priority greater than 0 cannot have 0 votes. 
+   A replica set can have up to 50 members but only 7 voting members
+   Non-voting (i.e. votes is 0) members must have priority of 0.
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+SHARDING
+https://docs.mongodb.com/manual/core/sharded-cluster-config-servers/
+A) SETTING UP CONFIG SERVER, MUST BE A REPLICA SET WITH ATLEASE 1 MEMBER
+1. mongod --configsvr --dbpath /home/oracle/MONGODB/sharding/configserver --port 30001 --bind_ip 192.168.1.75 --replSet rc1 (OR mongod -f /home/oracle/MONGODB/sharding/conffiles/mongo_config_server.conf) 
+
+   mongod --shardsvr --dbpath /home/oracle/MONGODB/sharding/configserver --port 30001 --bind_ip 192.168.1.75 --replSet rc1 <==== Do not use this mongod options
+2. mongo --port 30001 --host 192.168.1.75 
+3. rs.initiate()
+4. rs.config()
+{
+        "_id" : "rc1",
+        "version" : 1,
+        "term" : 1,
+        "configsvr" : true,  <====== this is a SHARD CLUSTER CONFIG SERVER
+
+ALWAYS QUERY db.serverStatus () to know if its a master or secondary, "lastWrite", "storageEngine","defaultRWConcern" etc
+
+To deploy config servers as a replica set, the config servers must run the WiredTiger storage engine.
+
+When writing to the config servers, MongoDB uses a write concern of "majority".
+5. HOW TO SET READ CONCERN OF "majority" FOR SHARD SERVER REPLICA SET : MongoDB Enterprise r1:PRIMARY> db.adminCommand({"setDefaultRWConcern" : 1, "defaultReadConcern" : { "level" : "majority" }})
+
+When reading from the replica set config servers, MongoDB uses a Read Concern level of "majority".
+6. HOW TO SET WRITE CONCERN OF "majority" FOR SHARD SERVER REPLICA SET : MongoDB Enterprise r1:PRIMARY> db.adminCommand({"setDefaultRWConcern" : 1, "defaultWriteConcern" : {"w" : "majority"}})
+
+The following restrictions apply to a replica set configuration when used for config servers:
+Must have zero arbiters.
+Must have no delayed members.
+Must build indexes (i.e. no member should have members[n].buildIndexes setting set to false). : var cfg = rs.config (), cfg.members[0].buildIndexes
+
+
+B) SETTING UP QUERY ROUTER (mongos) 
+1. mongos --configdb r1/192.168.1.75:30001 --port 30002 --bind_ip localhost (must try with --bind_ip orcl) OR mongos -f /home/oracle/MONGODB/sharding/conffiles/mongo_query_router.conf
+		IF THERE ARE MULTIPLE CONFIGDB SERVERS, USE --configdb r1/192.168.1.75:30001,r2/192.168.1.75:30011,r3/192.168.1.75:30111
+if above command is not working because of "Connection Refused" message while connecting to "mongos" using "mongo" shell, use this command : mongos --configdb r1/192.168.1.75:30001 --port 30002 --bind_ip_all
+ a. r1 is the replica set name of the config server, comes from this command : mongod --configsvr --dbpath /home/oracle/MONGODB/sharding/configserver --port 30001 --bind_ip 192.168.1.75 --replSet r1
+ b. "192.168.1.75" is the host config db is running
+ c. "30001" is the port config db is listening to
+ d. "30002" is the port "mongos" is running
+ e. --bind_ip is the IP address that mongos is running
+
+mongo --port 30002 [--host localhost | orcl]
+
+MongoDB Enterprise mongos> db.serverStatus()
+{
+        "host" : "orcl:30002",
+        "version" : "4.4.8",
+        "process" : "mongos",  <======= The "mongos" process
+
+TO KNOW WHICH PROCESS IS THE CURRENT SESSION : db.serverStatus().process
+TO KNOW WHICH HOST IS THE CURRENT SESSION : db.serverStatus().host
+
+
+
+C) SETTING UP THE SHARDS
+SHARD instance 1 to hold documents : 
+1. mongod --port 30003 --bind_ip 192.168.1.75 --dbpath /home/oracle/MONGODB/sharding/shard1 --shardsvr --replSet r1 OR mongod -f /home/oracle/MONGODB/sharding/conffiles/shard1.conf
+2. mongo --port 30003 --host 192.168.1.75
+3. rs.initiate()
+4. rs.config()
+
+D) SHARD instance 2 to hold documents : 
+1. mongod --port 30004 --bind_ip 192.168.1.75 --dbpath /home/oracle/MONGODB/sharding/shard2 --shardsvr --replSet r2 OR mongod -f /home/oracle/MONGODB/sharding/conffiles/shard2.conf
+2. mongo --port 30004 --host 192.168.1.75
+3. rs.initiate()
+4. rs.config()
+
+E) CONFIGURING SHARDS [CONFIG THE DATA BEARING MEMBERS]
+CONNECT TO MONGOS using MONGO SHELL
+mongo --port 30002 [--host localhost]
+sh.status ()
+
+E.1) Add First data bearing member
+MongoDB Enterprise mongos> sh.addShard("r1/192.168.1.75:30003") <===== for ReplicaSet Shards, "r1" is the replica set name [sh.addShard("192.168.1.75:30003") <==== for standalone shards]
+{
+        "shardAdded" : "r1",
+        "ok" : 1,
+        "operationTime" : Timestamp(1639060408, 8),
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1639060408, 8),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        }
+}
+
+E.2) Add secondt data bearing member
+sh.addShard("r2/192.168.1.75:30004") <======== r2 is the replica set name for second data bearing member
+
+F) ENABLING THE SHARDING
+use database_name
+sh.enableSharding ("database_name")
+EXAMPLE : sh.enableSharding ("learning")
+
+G) CHECK SHARDING STATUS
+sh.status ()
+
+STARTING SHARD CLUSTER
+
+1. Start config server
+ mongod -f ./conffiles/config_server.conf
+
+2. Start query router
+ mongos -f ./conffiles/query_router.conf
+
+3. Start remaining shards
+ mongod -f ./conffiles/shard1.conf
+ mongod -f ./conffiles/shard2.conf
+
+4. Start clients
+ mongo --host orcl --port 30002
+
+H) CREATE THE COLLECTION
+db.createCollection ("collection_name")
+MongoDB Enterprise mongos> db.createCollection ("movies")
+
+I) CREATE THE INDEX
+db.collection_name.createIndex ({field_name : 1})
+MongoDB Enterprise mongos> db.movies.createIndex ({Released : 1})
+{
+        "raw" : {
+                "r2/192.168.1.75:30004" : {
+                        "createdCollectionAutomatically" : false,
+                        "numIndexesBefore" : 1,
+                        "numIndexesAfter" : 2,
+                        "commitQuorum" : "votingMembers",
+                        "ok" : 1
+                }
+        },
+        "ok" : 1,
+        "operationTime" : Timestamp(1639061532, 1),
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1639061532, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        }
+}
+
+
+J) MAKE SURE THAT THE INDEX IS HASHED
+db.collection_name.ensureIndex({field : "hashed"})
+MongoDB Enterprise mongos> db.movies.ensureIndex ({Released : "hashed"})
+{
+        "raw" : {
+                "r2/192.168.1.75:30004" : {
+                        "createdCollectionAutomatically" : false,
+                        "numIndexesBefore" : 2,
+                        "numIndexesAfter" : 3,
+                        "commitQuorum" : "votingMembers",
+                        "ok" : 1
+                }
+        },
+        "ok" : 1,
+        "operationTime" : Timestamp(1639061575, 1),
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1639061575, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        }
+}
+
+
+K) ENABLING SHARDING FOR THE COLLECTION
+sh.shardCollection ("db_name.collection_name", {field : "hashed"}})
+FOR EXAMPLE : MongoDB Enterprise mongos> sh.shardCollection ("learning.movies", {Released : "hashed"})
+{
+        "collectionsharded" : "learning.movies",
+        "collectionUUID" : UUID("07cd254d-0aba-4496-b952-159f2eac84ce"),
+        "ok" : 1,
+        "operationTime" : Timestamp(1639069952, 30),
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1639069952, 30),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        }
+}
+
+
+L) VERIFY SHARDING IS WORKING AS INTENDED
+use <database name>
+db.collection_name.getShardDistribution()
+FOR EXAMPLE : 
+MongoDB Enterprise mongos> use learning
+MongoDB Enterprise mongos> db.movies.getShardDistribution ()
+
+Shard shard0001 at 192.168.1.75:30004
+ data : 0B docs : 0 chunks : 2
+ estimated data per chunk : 0B
+ estimated docs per chunk : 0
+
+Shard shard0000 at 192.168.1.75:30003
+ data : 0B docs : 0 chunks : 2
+ estimated data per chunk : 0B
+ estimated docs per chunk : 0
+
+Totals
+ data : 0B docs : 0 chunks : 4
+ Shard shard0001 contains 0% data, 0% docs in cluster, avg obj size on shard : 0B
+ Shard shard0000 contains 0% data, 0% docs in cluster, avg obj size on shard : 0B
+
+
+MongoDB Enterprise mongos> db.movies.getIndexes ()
+use config
+db.chunks.find ().pretty ()
+
+M) IMPORT DATA TO SHARD CLUSTER :
+mongoimport --db learning --collection movies --type csv --fields "name,director,actor,Written,Released" --mode insert --host orcl --port 30002 --file=/home/oracle/MONGODB/mov.csv
+
+ERROR 
+2021-12-09T19:58:29.785+0530    connected to: mongodb://orcl:30002/
+2021-12-09T19:58:29.808+0530    Failed: (ShardNotFound) unable to initialize targeter for write op for collection learning.movies :: caused by :: Database learning could not be created :: caused by :: No shards found
+Root Cause
+sh.addShard () and remaining steps were not executed
+
+MONITORING
+MongoDB Enterprise mongos> show logs
+global
+startupWarnings
+
+FORMAT : <TIMESTAMP> <SEVERITY> <COMPONENT> [<CONTEXT>] <MESSAGE>
+{"t":{"$date":"2021-12-11T20:36:37.650+05:30"},"s":"I",  "c":"CONTROL",  "id":20714,   "ctx":"LogicalSessionCacheRefresh","msg":"Failed to refresh session cache, will try again at the next refresh interval","attr":{"error":"NamespaceNotSharded: Collection config.system.sessions is not sharded."}}
+                                                |         | 
+                                          SEVERITY       TOPIC KEYWORD
+
+show log global
+db.setLogLevel (0, 'query')
+query : accessControl, command, control, geo, index, network, query, replication, storage, journal, write
+
+EXAMPLE : db.setLogLevel (4, 'query')
+db.getLogComponents ()
+
+
+component:
+   command:
+      verbosity: 2
+
+QUERY PROFILER
+
+HOW TO SET PROFILING
+Note : Connect to "mongod" data bearing members, not "mongos" 
+mongo --host 192.168.1.75 --port 30003 <=== A data bearing member
+MongoDB Enterprise r1:PRIMARY> show profile
+db.system.profile is empty
+Use db.setProfilingLevel(2) will enable profiling
+Use db.system.profile.find() to show raw profile entries
+
+db.setProfilingLevel (<level>, <threshold in milli seconds>)
+   level : 0, 1, 2
+EXAMPLE 
+MongoDB Enterprise r1:PRIMARY> db.setProfilingLevel (1, 3)
+
+db.movies.find ({"actor" : "Mohanlal"}).toArray ()
+
+TO VIEW EARLIER PROFILES
+db.system.profile.findOne ({op: 'query', ns:'learning.movies'})
+
+MongoDB Enterprise mongos> db.runCommand ({serverStatus :1})
+
+db.adminCommand ({'listDatabases' : 1})
+db.adminCommand ({'listIndexes' : "movies"})
+db.movies.getIndexes()
+
+
+CREATE USER
+db.createUser (user_name, write concern)
+EXAMPLE
+db.createUser({ user: "accountAdmin01",
+                 pwd: passwordPrompt(), Or "<cleartext password>"
+                 customData: {employeeId: 12345},
+                 roles: [ 
+                      {role: "clusterAdmin", db: "admin"},
+                      {role: "readAnyDatabase", db: "admin"},
+                      "readWrite"
+                 ]
+               },
+               {w: "majority" , wtimeout: 5000} 
+)
+db.getUsers({showCredentials:true})
+
+------------------------------------------------------------------------------------------------------------------------
+https://docs.mongodb.com/manual/tutorial/change-own-password-and-custom-data/#connect-as-a-user-with-privileges-to-manage-users-and-roles
+CREATE ADMIN USER FOR MONGODB
+USERNAME : madmin
+PASSWORD : redhat
+
+The "security.authorization" setting in MongoDB configuration file has to be set to "enabled".
+This configuration setting is available only for mongod configuration file, not for mongos configuration file
+set "security.authorization : enabled" for username password authentication or as below :
+security :
+   authorization : enabled
+
+Once the above setting is made, restart the mongod instance
+
+
+GENERAL SYNTAX FOR CREATE USER
+https://docs.mongodb.com/manual/reference/command/createUser/#std-label-create-user-auth-restrictions
+db.createUser (
+{
+  createUser: "<name>", // String type
+  pwd: passwordPrompt(),      // Or  "<cleartext password>", String type
+  customData: { <any information> }, // Document type
+  roles: [ // array type
+    { role: "<role>", db: "<database>" } | "<role>",
+    ...
+  ],
+  writeConcern: { w : "majority", wtimeout : 5000 }, // Document type
+  authenticationRestrictions: [ // Array type
+     { 
+          clientSource: [ "<IP|CIDR range>", ... ], 
+          serverAddress: [ "<IP|CIDR range>", ... ] 
+     },
+     ...
+  ],
+  mechanisms: [ "<scram-mechanism>", ... ],  //Available starting in MongoDB 4.0, Array type
+  digestPassword: <boolean>, // boolean type
+  comment: <any> // Any type
+}
+)
+
+mongo --host orcl --port 30002 
+use admin
+db.createUser (
+  {
+     user : "madmin",
+     pwd : "redhat",
+     customData : {description : "This is the admin user for all port 32000 mongodb databases"},
+     roles : [
+                {role : "userAdmin", db : "admin"},
+                {role : "userAdmin", db : "learning"},
+                {role : "userAdmin", db : "config"},
+                {role : "userAdmin", db : "local"},
+             ]
+  },
+  {
+     w : "majority", wtimeout : 5000
+  }
+)
+
+
+HOW TO CREATE ROLE
+db.createRole(role, writeConcern)
+role <= Document
+writeConcern <= Document
+
+role has the form :
+{
+  role: "<name>",
+  privileges: [
+     { resource: { <resource> }, actions: [ "<action>", ... ] },
+     ...
+  ],
+  roles: [
+     { role: "<role>", db: "<database>" } | "<role>",
+      ...
+  ],
+  authenticationRestrictions: [
+    {
+      clientSource: ["<IP>" | "<CIDR range>", ...],
+      serverAddress: ["<IP>" | "<CIDR range>", ...]
+    },
+    ...
+  ]
+}
+
+writeConcern has the form :
+{ w: "majority" , wtimeout: 5000 }
+
+
+use admin
+db.auth ("madmin", "redhat")
+
+use admin
+db.system.users.find ().pretty ()
+
+use admin
+db.grantRolesToUser(
+    "madmin",
+    [
+      { role: "readWriteAnyDatabase", db: "admin" }
+    ],
+  {
+     w : "majority", wtimeout : 5000
+  }
+)
+
+TO SEE ALL ROLES OF A USER 
+db.getUser ("madmin")
+db.runCommand ({usersInfo :1})
+
+TO SEE PRIVILEGES ASSOCIATED TO A ROLE
+db.getRole( "role_name", { showPrivileges: true } )
+EXAMPLE : db.getRole("readWriteAnyDatabase", {showPrivileges: true } )
+
+System collections include but are not limited to the following:
+1. <database>.system.profile
+2. <database>.system.js
+3. system.users Collection in the admin database
+4. system.roles Collection in the admin database
+
+{ db: "test", collection: "" } <= This resource document means that the
+resource is all collections (excluding system collections) in database "test"
+
+{ db: "", collection: "accounts" } <= This resource document means that resource
+is all databases that "accounts" collections are present.
+
+{ db: "", collection: "" } <= This resource document means that the resource is all 
+non-system collections in all databases
+
+Collection-Level Access Control
+https://docs.mongodb.com/manual/core/collection-level-access-control/
+privileges: [
+  { resource: { db: "products", collection: "inventory" }, actions: [ "find", "update", "insert" ] },
+  { resource: { db: "products", collection: "orders" },  actions: [ "find" ] }
+]
+
+TO SEE SYSTEM.USERS COLLECTIONS
+use admin
+db.system.users.find ().pretty ()
+
+
+use admin
+db.auth ("madmin", "redhat")
+use learning
+db.runCommand ({listCollections : 1})
+
+Cluster Resource
+{ cluster : true }
+Actions on cluster resource 
+shutdown, replSetReconfig, addShard
+Example : { resource: { cluster : true }, actions: [ "shutdown" ] }
+User-defined roles in "admin" database have this this resource specification
+for their privileges
+
+
+CREATE NORMAL USER
+USERNAME : prajeeth
+PASSWORD : redhat
+ON DATABASE : learning
+
+SECURITY
+learn how to grant least privilege
+lean how to see roles and privileges granted to each user in each database
+learn how to grant storage quota to normal user
+learn how to create read only user
+
+AUDITING
+learn how to audit sys operations and failed attemps
+
+------------------------------------------------------------------------------------------------------------------------
+CLEAR SCREEN : ctrl l
+
+
+netstat -an | grep 30002 (https://dba.stackexchange.com/questions/181693/mongodb-exception-connect-failed)
+
+TO KNOW THE STORAGE ENGINE USED IN MONGODB INSTANCE
+db.serverStatus().storageEngine
+Once it is confirmed that wiredTiger is being used then type
+db.serverStatus().wiredTiger
+
+ISODate format : 2021-12-23T09:57:47.618+05:30
+
+Killing Mongo : killall mongod
+
+TO FIND MONGODB CONNECTION DETAILS
+
+MongoDB Enterprise > db.currentOp(true).inprog.reduce(
+   (accumulator, connection) => {
+     ipaddress = connection.client ? connection.client.split(":")[0] : "Internal";
+     accumulator[ipaddress] = (accumulator[ipaddress] || 0) + 1;
+     accumulator["TOTAL_CONNECTION_COUNT"]++;
+     return accumulator;
+   },
+   { TOTAL_CONNECTION_COUNT: 0 }
+ )
+{
+        "TOTAL_CONNECTION_COUNT" : 20,
+        "Internal" : 16,
+        "192.168.1.50" : 3,
+        "192.168.1.75" : 1
+}
+
+OR db.currentOp(true).inprog.forEach(function(x) { print(x.client) })
+
+[root@orcl ~]# lsof | grep mongod | grep TCP
+mongod    18167    oracle   11u     IPv4             137420       0t0        TCP orcl:32000 (LISTEN)
+mongod    18167    oracle   42u     IPv4             137437       0t0        TCP orcl:32000->192.168.1.50:57218 (ESTABLISHED)
+mongod    18167    oracle   44u     IPv4             137439       0t0        TCP orcl:32000->192.168.1.50:57219 (ESTABLISHED)
+mongod    18167    oracle   46u     IPv4             137471       0t0        TCP orcl:32000->orcl:60544 (ESTABLISHED)
+mongod    18167    oracle   48u     IPv4             137475       0t0        TCP orcl:32000->192.168.1.50:57229 (ESTABLISHED)  (Server : orcl; Server Port :32000 Client : 192.168.1.50; Client Port:57229 (ESTABLISHED) < Connection is established)
+
+[root@orcl ~]# netstat -anp --tcp --udp | grep mongo
+tcp        0      0 192.168.1.75:32000          0.0.0.0:*                   LISTEN      18167/mongod
+tcp        0      0 192.168.1.75:32000          192.168.1.50:57229          ESTABLISHED 18167/mongod
+tcp        0      0 192.168.1.75:60544          192.168.1.75:32000          ESTABLISHED 18215/mongo
+tcp        0      0 192.168.1.75:32000          192.168.1.50:57218          ESTABLISHED 18167/mongod
+tcp        0      0 192.168.1.75:32000          192.168.1.50:57219          ESTABLISHED 18167/mongod
+tcp        0      0 192.168.1.75:32000          192.168.1.75:60544          ESTABLISHED 18167/mongod
+
+[root@orcl ~]# ps -eaf | grep -i mongo
+oracle   18167     1  0 11:18 ?        00:01:22 mongod -f /etc/mongod.conf
+oracle   18215  3177  0 11:18 pts/0    00:00:00 mongo --host 192.168.1.75 --port 32000
+
+db.getSiblingDB("admin").aggregate( [
+   { $currentOp: { allUsers: true, idleConnections: true, idleSessions: true } }
+  ,{$project:{
+            "_id":0
+           ,client:{$arrayElemAt:[ {$split:["$client",":"]}, 0 ] }
+           ,curr_active:{$cond:[{$eq:["$active",true]},1,0]}
+           ,curr_inactive:{$cond:[{$eq:["$active",false]},1,0]}
+           }
+   }
+  ,{$match:{client:{$ne: null}}}
+  ,{$group:{_id:"$client",curr_active:{$sum:"$curr_active"},curr_inactive:{$sum:"$curr_inactive"},total:{$sum:1}}}
+  ,{$sort:{total:-1}}
+] )
+
+db.movies.aggregate ([{$group : {_id : "$actor", tot : {$sum :1}}}])
+
+-----------------------------------------------------------------------------------------------------------------------------
+TO INSTALL LASTEST VERSION OF PYMONGO 
+
+python -m easy_install pymongo
+
+>>> import pymongo OR WE CAN USE "from pymongo import MongoClient", but instead of "pymongo.MongoClient", use "MongoClient" only
+>>> conn = pymongo.MongoClient ("mongodb://192.168.1.75:30002")
+>>> print (conn.list_database_names ())
+>>> db = conn['learning']
+>>> coll = db['movies']
+>>> records = coll.find_one()
+>>> print (records)
+
+>>> for record in coll.find () :
+...    print (record)
+...
+
+>>> for record in coll.find () :
+...    print (record["actor"])
+...
+Mohanlal
+Mohanlal
+Sukumaran
+Prem Nazir
+
+>>> for record in coll.find () :
+...    print (record["actor"] + ' -> ' + record["name"])
+...
+Mohanlal -> Oothikachiya Ponnu
+Mohanlal -> Ahimsa
+Sukumaran -> Chillu Kottaram
+
+for rec in coll.find () :
+   formRec = "{} {} {}"
+   print (formRec.format (rec["name"], rec["director"], rec["actor"]))
+
+
+db.movies.aggregate (
+[
+   {
+       $group: {
+         _id : "$actor", 
+         totalCnt : {$sum : 1}
+       }
+   }
+]
+)
+
+db.movies.aggregate (
+[
+   {
+       $group: {
+         _id : "expression", 
+         <field> : {accumulator : <expression>}
+       }
+   }
+]
+)
+NOTE : ALL FIELD NAMES MUST BE OF FORM "$field_name" (ie. Field name must be preceded by $ sign and must be enclosed in quotes)
+
+db.movies.aggregate (
+   [
+      {<stage-1>},
+      {<stage-2>}
+   ]
+)
+
+db.sales.aggregate(
+  [
+    // First Stage
+    {
+      $group :
+        {
+          _id : "$item",
+          totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
+        }
+     },
+     // Second Stage
+     {
+       $match: { "totalSaleAmount": { $gte: 100 } }
+     }
+   ]
+ )
+
+Group by Day of the Year
+The following pipeline calculates the total sales amount, average sales quantity, and sale count for each day in the year 2014:
+db.sales.aggregate([
+  // First Stage
+  {
+    $match : { "date": { $gte: new ISODate("2014-01-01"), $lt: new ISODate("2015-01-01") } }
+  },
+  // Second Stage
+  {
+    $group : {
+       _id : { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+       totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+       averageQuantity: { $avg: "$quantity" },
+       count: { $sum: 1 }
+    }
+  },
+  // Third Stage
+  {
+    $sort : { totalSaleAmount: -1 }
+  }
+ ])
+
+db.movies.aggregate (
+[
+   {$group : {
+                _id : "$actor",
+                movie : {$push : "$name"}
+            }
+   }
+]
+)
+
+TOTAL STATE POPULATION
+db.zipcodes.aggregate (
+[
+   {
+      $group : {
+           _id : "$state",
+           statePop : {$sum : "$pop"}
+      }
+   },
+   {
+      $match : {
+          statePop : {$gte : 10 * 1000000}
+      }
+   }
+]
+)
+{ "_id" : "PA", "statePop" : 11881643 }
+{ "_id" : "OH", "statePop" : 10846517 }
+{ "_id" : "FL", "statePop" : 12686644 }
+{ "_id" : "IL", "statePop" : 11427576 }
+{ "_id" : "NY", "statePop" : 17990402 }
+{ "_id" : "TX", "statePop" : 16984601 }
+{ "_id" : "CA", "statePop" : 29754890 }
+
+AVERAGE STATE POPULATION
+db.zipcodes.aggregate (
+[
+  {
+     $group : {
+       _id : {state : "$state", city : "$city"},
+       statePop : {$sum : "$pop"}
+     }
+  },
+  {
+     $group : {
+        _id : "$_id.state",
+        totalPop : {$avg : "$statePop"}
+     }
+  }
+]
+)
+{ "_id" : "PA", "totalPop" : 8679.067202337472 }
+{ "_id" : "NV", "totalPop" : 18209.590909090908 }
+{ "_id" : "WV", "totalPop" : 2771.4775888717154 }
+{ "_id" : "VA", "totalPop" : 8526.177931034483 }
+
+Code I got from terminal when executing "var cur = db.movies.find ({"actor": {$eq : "Mohanlal"}}); while(myEmployee.hasNext()) {print(tojson(myEmployee.next()));}
+
+function() {
+    this._exec();
+
+    var o = this._cursor.hasNext();
+    if (o)
+        this._cursorSeen++;
+    else
+        throw Error("error hasNext: " + o);
+
+    var ret = this._cursor.next();
+    if (ret.$err) {
+        throw _getErrorWithCode(ret, "error: " + tojson(ret));
+    }
+
+    this._numReturned++;
+    return ret;
+}
+
+
+db.createUser(
+{
+   user: "user1@example.NET",
+   roles:[
+           {
+              role: "read" , db:"Marketing"}
+           }
+   ]
+}

@@ -1,0 +1,37 @@
+Built-In Roles
+https://docs.mongodb.com/manual/reference/built-in-roles/
+
+Database User Roles
+read
+readWrite
+
+Database Administration Roles
+dbAdmin
+dbOwner
+userAdmin
+
+
+Cluster Administration Roles
+clusterAdmin
+clusterManager
+clusterMonitor
+hostManager
+
+Backup and Restoration Roles
+backup
+restore
+
+
+All-Database Roles
+readAnyDatabase
+readWriteAnyDatabase
+userAdminAnyDatabase
+dbAdminAnyDatabase
+
+Superuser Roles
+root
+
+Internal Role
+__system
+
+
